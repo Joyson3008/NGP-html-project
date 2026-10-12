@@ -1,0 +1,98 @@
+
+<html>
+<body>
+    <style>
+
+    </style>
+
+    <h1>Welcome to the World Tour</h1>
+    <form id="blogForm">
+        <p>Enter the title of the Blog:</p>
+        <input type="text" id="title" required>
+
+        <p>Enter your content:</p>
+        <textarea id="content" required></textarea>
+
+        <br>
+        
+        <br>
+        <button type="submit">Publish the blog </button>
+    </form>
+
+    <hr>
+
+    <h2>Published Blogs</h2>
+    <div id="posts"></div>
+
+    <script>
+        const API = 'http://localhost:3000/posts';
+
+        async function loadPosts() {
+            const response = await fetch(API);
+            const posts = await response.json();
+
+            const postsDiv = document.getElementById('posts');
+            postsDiv.innerHTML = '';
+
+            posts.forEach(post => {
+                const blog = document.createElement('div');
+
+                const title = document.createElement('h3');
+                title.textContent = post.title;
+
+                const content = document.createElement('p');
+                content.textContent = post.content;
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.onclick = () => editPost(post);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => deletePost(post.id);
+                blog.appendChild(title);
+                blog.appendChild(content);
+                blog.appendChild(editButton);
+                blog.appendChild(deleteButton);
+
+                postsDiv.appendChild(blog);
+                postsDiv.appendChild(document.createElement('hr'));
+            });
+        }
+        document.getElementById('blogForm').onsubmit = async function(event) {
+            event.preventDefault();
+
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+
+            await fetch(API, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, content })
+            });
+
+            this.reset();
+            loadPosts();
+        };
+        async function editPost(post) {
+            const title = prompt('enter title', post.title);
+            const content = prompt('enter the new content', post.content);
+
+            if (title === null || content === null) {
+                return;
+            }
+            await fetch(API + '/' + post.id, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, content })
+            });
+
+            loadPosts();
+        }
+    </script>
+
+</body>
+</html>
